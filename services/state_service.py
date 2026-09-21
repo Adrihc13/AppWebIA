@@ -1,7 +1,11 @@
+import uuid
+
 import streamlit
-from langchain_core.messages import BaseMessage
+from langchain_core.messages import BaseMessage, HumanMessage
+from repositories import db
 
 def init() -> None:
+    db.init_db()
     _init_messages()
     _init_screens()
 
@@ -20,13 +24,36 @@ def add_message(msg: BaseMessage) -> None:
 def get_messages() -> list[BaseMessage]:
     return streamlit.session_state.messages
 
+def get_last_user_message() -> HumanMessage | None:
+    messages = get_messages()
+    if not messages:
+        return None
+
+    last_message = messages[-1]
+    if isinstance(last_message, HumanMessage):
+        return last_message
+    return None 
+
+
 def clear()-> None:
     streamlit.session_state.messages = []
+
+def new_conversation() -> None:
+    _new_thread_id()
+    clear()
 
 # Elimina los 2 ultimos mensajes, la pregunta del usuario y la respuesta de la IA
 def remove_last_exchange() -> None:
     if len(streamlit.session_state.messages) >= 2:
         streamlit.session_state.messages = streamlit.session_state.messages[:-2] 
+
+def get_thread_id() -> str:
+    if "thread_id" not in streamlit.session_state:
+        _new_thread_id()
+    return streamlit.session_state.thread_id
+
+def _new_thread_id() -> None:
+    streamlit.session_state.thread_id = str(uuid.uuid4())
 
 # --- Screen ---
 def get_screen_type() -> int:

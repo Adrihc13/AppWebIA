@@ -17,7 +17,7 @@ def _render_chatbot_sidebar():
 
         # De momento borra el historial
         if streamlit.button("🗑️ Nueva conversación"):    
-            state_service.clear()
+            state_service.new_conversation()
             streamlit.rerun()
 
         # Elimina los 2 ultimos mensajes

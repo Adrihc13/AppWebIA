@@ -1,6 +1,7 @@
 from langchain_groq import ChatGroq
 from langgraph.graph import END, START, StateGraph
 from langchain_core.messages import SystemMessage
+from langgraph.checkpoint.sqlite import SqliteSaver
 
 from .agent_state import AgentState
 from .llm import MODEL_NAME, SYSTEM_PROMPT
@@ -20,7 +21,7 @@ def call_model(state: AgentState) -> dict:
 
 
 # Creacion y compilacion del grafo
-def build_graph():
+def build_graph(checkpointer_sqlite_saver = None):
     graph_builder = StateGraph(AgentState)
 
     graph_builder.add_node("model", call_model)
@@ -28,4 +29,4 @@ def build_graph():
     graph_builder.add_edge(START, "model")
     graph_builder.add_edge("model", END)
 
-    return graph_builder.compile()
+    return graph_builder.compile(checkpointer=checkpointer_sqlite_saver)

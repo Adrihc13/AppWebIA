@@ -184,3 +184,9 @@ cython_debug/
 *.pyc
 .streamlit/secrets.toml
 .DS_Store
+
+# DataBase
+*.db
+*.sqlite
+*.sqlite3
+data/
