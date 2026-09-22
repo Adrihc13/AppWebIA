@@ -4,10 +4,12 @@ import streamlit
 from langchain_core.messages import BaseMessage, HumanMessage
 from repositories import db, conversation_repo
 
+# --- Inits ---
 def init() -> None:
     db.init_db()
     _init_messages()
     _init_screens()
+    _init_documentation()
 
 def _init_screens():
     if "screen_type" not in streamlit.session_state:
@@ -16,6 +18,10 @@ def _init_screens():
 def _init_messages() -> None:
     if "messages" not in streamlit.session_state:
             streamlit.session_state.messages = []
+
+def _init_documentation() -> None:
+    if "last_documentation"not in streamlit.session_state:
+        streamlit.session_state.last_documentation = ""
 
 # --- Message ---
 def add_message(msg: BaseMessage) -> None:
@@ -65,3 +71,13 @@ def get_screen_type() -> int:
 
 def set_screen_type(screen_type: int) -> None:
     streamlit.session_state.screen_type = screen_type
+
+# --- Documentation ---
+def get_last_documentation() -> str:
+    return streamlit.session_state.get("last_documentation","")
+
+def set_last_documentation(new_doc: str) -> None:
+    streamlit.session_state.last_documentation = new_doc
+
+def clear_last_documentation() -> str:
+    streamlit.session_state.last_documentation = ""

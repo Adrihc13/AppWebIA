@@ -1,3 +1,4 @@
+from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 
 # Config del modelo
@@ -14,6 +15,6 @@ SYSTEM_PROMPT = (
 
 load_dotenv()
 
-def create_llm():
-    pass
+def create_llm(temperature_value = 0.7):
+    return ChatGroq(model = MODEL_NAME, temperature = temperature_value)
 
