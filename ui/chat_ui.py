@@ -5,7 +5,17 @@ from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 from services import state_service
 from agent.llm import MODEL_NAME
 
-
+streamlit.markdown(
+    """
+    <style>
+    div[data-testid="stButton"] > button {
+        text-align: left !important;
+        justify-content: flex-start !important;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
 
 def _render_chatbot_header():
     streamlit.title("Buenas soy la Rana inteligente Grog 🐸, pregunta lo que quieras!")
@@ -21,11 +31,13 @@ def _render_chatbot_sidebar():
             state_service.new_conversation()
             streamlit.rerun()
 
+        """
         # Elimina los 2 ultimos mensajes
-        if streamlit.button("Borrar ultimo mensaje") and streamlit.session_state.messages:
-            state_service.remove_last_exchange()
-            streamlit.rerun()
-
+                if streamlit.button("Borrar ultimo mensaje") and streamlit.session_state.messages:
+                    state_service.remove_last_exchange()
+                    streamlit.rerun()
+        """
+        
         streamlit.divider()
         streamlit.subheader("Conversaciones")
         _render_conversation_list()
@@ -56,9 +68,16 @@ def _render_conversation_list():
         title = c["title"]
         mark = "●" if tid == actual_thread_id else "○"
 
-        if streamlit.button(f"{mark} {title}", key = f"conv_{tid}", use_container_width = True) and tid != actual_thread_id:
-            chat_service.switch_conversation(tid)
-            streamlit.rerun() 
+        col1, col2 = streamlit.columns([4,1])
+
+        with col1: 
+            if streamlit.button(f"{mark} {title}", key = f"conv_{tid}", use_container_width = True) and tid != actual_thread_id:
+                chat_service.switch_conversation(tid)
+                streamlit.rerun()
+        with col2:
+            if streamlit.button("🗑️", key = f"del_{tid}"):
+                chat_service.delete_conversation(tid)
+                streamlit.rerun()
 
 def render_user_message(text: str):
     with streamlit.chat_message("user"):

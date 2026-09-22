@@ -21,6 +21,8 @@ def init():
     handle_input()
 
 def handle_input() -> None:
+    new_conversation: bool = False
+
     #Comprueba si hay input
     user_input = chat_ui.get_user_input()
     if not user_input:
@@ -31,6 +33,7 @@ def handle_input() -> None:
     # Comprobamos que exista la conversacion en caso contrario la creamos
     if not conv_repo.exists_conversation(thread_id):
         conv_repo.create_conversations(thread_id, user_input)
+        new_conversation = True
 
     #Actualizamos el titulo de la conversacion en BBDD cuando se mande el primer mensaje del user, en el caso de que si existiera la conversacion
     elif conv_repo.get_message_count(thread_id) == 0:
@@ -46,6 +49,8 @@ def handle_input() -> None:
     state_service.add_message(AIMessage(content = full_response))
 
     conv_repo.increment_message_count(thread_id)
+    if new_conversation:
+        streamlit.rerun()
 
 
 def _send_messages_to_agent():
@@ -79,3 +84,6 @@ def switch_conversation(thread_id: str) -> None:
 
     for msg in load_messages(thread_id):
         state_service.add_message(msg)
+
+def delete_conversation(thread_id: str):
+    conv_repo.delete_conversation(thread_id)

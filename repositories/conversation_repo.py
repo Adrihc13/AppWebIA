@@ -48,4 +48,4 @@ def get_message_count(thread_id) -> int:
 
 def delete_conversation(thread_id):
     with db.get_connection() as conn:
-            conn.execute(DELETE_QUERY, (thread_id))
+            conn.execute(DELETE_QUERY, (thread_id,))
