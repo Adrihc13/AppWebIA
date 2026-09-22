@@ -41,6 +41,11 @@ def increment_message_count(thread_id, increment = 2):
     with db.get_connection() as conn:
             conn.execute(INCREMEN_MSG_COUNT_QUERY, (increment, datetime.now(), thread_id))
 
+def get_message_count(thread_id) -> int:
+    with db.get_connection() as conn:
+        row = conn.execute("SELECT messages_count FROM conversations WHERE thread_id = ?", (thread_id,)).fetchone()
+        return row["messages_count"] if row else 0
+
 def delete_conversation(thread_id):
     with db.get_connection() as conn:
             conn.execute(DELETE_QUERY, (thread_id))

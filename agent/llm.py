@@ -1,7 +1,8 @@
 from dotenv import load_dotenv
 
 # Config del modelo
-MODEL_NAME = "groq/compound-mini"
+#MODEL_NAME = "groq/compound-mini"
+MODEL_NAME = "openai/gpt-oss-20b"
 
 SYSTEM_PROMPT = (
     "Eres un asistente útil, claro y conciso. "

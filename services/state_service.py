@@ -2,7 +2,7 @@ import uuid
 
 import streamlit
 from langchain_core.messages import BaseMessage, HumanMessage
-from repositories import db
+from repositories import db, conversation_repo
 
 def init() -> None:
     db.init_db()
@@ -39,8 +39,9 @@ def clear()-> None:
     streamlit.session_state.messages = []
 
 def new_conversation() -> None:
-    _new_thread_id()
+    new_thread_id()
     clear()
+    conversation_repo.create_conversations(streamlit.session_state.thread_id, "Nueva conversación")
 
 # Elimina los 2 ultimos mensajes, la pregunta del usuario y la respuesta de la IA
 def remove_last_exchange() -> None:
@@ -49,10 +50,13 @@ def remove_last_exchange() -> None:
 
 def get_thread_id() -> str:
     if "thread_id" not in streamlit.session_state:
-        _new_thread_id()
+        new_thread_id()
     return streamlit.session_state.thread_id
 
-def _new_thread_id() -> None:
+def set_thread_id(thread_id: str) -> None:
+    streamlit.session_state.thread_id = thread_id
+
+def new_thread_id() -> None:
     streamlit.session_state.thread_id = str(uuid.uuid4())
 
 # --- Screen ---

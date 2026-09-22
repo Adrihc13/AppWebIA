@@ -6,6 +6,7 @@ from services import state_service
 from agent.llm import MODEL_NAME
 
 
+
 def _render_chatbot_header():
     streamlit.title("Buenas soy la Rana inteligente Grog 🐸, pregunta lo que quieras!")
     streamlit.caption("Chatbot con memoria de conversación · LangGraph + Groq")
@@ -26,6 +27,11 @@ def _render_chatbot_sidebar():
             streamlit.rerun()
 
         streamlit.divider()
+        streamlit.subheader("Conversaciones")
+        _render_conversation_list()
+
+        streamlit.divider()
+        streamlit.divider()
         streamlit.caption(f"Modelo: `{MODEL_NAME}`")
         streamlit.caption(f"Mensajes: {len(state_service.get_messages())}")
 
@@ -34,6 +40,25 @@ def _render_chatbot_history():
             role = "user" if isinstance(msg, HumanMessage) else "assistant"
             with streamlit.chat_message(role):
                 streamlit.markdown(msg.content)
+
+def _render_conversation_list():
+    from services import chat_service
+    conversations = chat_service.list_conversations()
+
+    if not conversations:
+        streamlit.caption("Cree una nueva conversación o escriba por el chat para comenzar")
+        return
+
+    actual_thread_id = state_service.get_thread_id()
+
+    for c in conversations:
+        tid = c["thread_id"]
+        title = c["title"]
+        mark = "●" if tid == actual_thread_id else "○"
+
+        if streamlit.button(f"{mark} {title}", key = f"conv_{tid}", use_container_width = True) and tid != actual_thread_id:
+            chat_service.switch_conversation(tid)
+            streamlit.rerun() 
 
 def render_user_message(text: str):
     with streamlit.chat_message("user"):
@@ -58,5 +83,5 @@ def get_user_input():
 
 def render_chatbot():
     _render_chatbot_header()
-    _render_chatbot_sidebar()
     _render_chatbot_history()
+    _render_chatbot_sidebar()
