@@ -29,6 +29,10 @@ def _init_project() -> None:
         streamlit.session_state.current_project_path = None
     if "current_project_name"not in streamlit.session_state:
         streamlit.session_state.current_project_name = None
+    if "selected_file_path" not in streamlit.session_state:
+        streamlit.session_state.selected_file_path = None
+    if "selected_file_content" not in streamlit.session_state:
+        streamlit.session_state.selected_file_content = None
 
 # --- Message ---
 def add_message(msg: BaseMessage) -> None:
@@ -105,3 +109,18 @@ def set_current_project(path: str, name: str) -> None:
 def clear_current_project() -> None:
     streamlit.session_state.current_project_path = None
     streamlit.session_state.current_project_name = None
+
+def set_selected_file(path: str, content: str) -> None:
+    streamlit.session_state.selected_file_path = path
+    streamlit.session_state.selected_file_content = content
+
+def get_selected_file() -> tuple[str, str] | None:
+    path = streamlit.session_state.get("selected_file_path")
+    content = streamlit.session_state.get("selected_file_content")
+    if path and content:
+        return path, content
+    return None
+
+def clear_selected_file() -> None:
+    streamlit.session_state.selected_file_path = None
+    streamlit.session_state.selected_file_content = None

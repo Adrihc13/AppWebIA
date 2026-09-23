@@ -128,3 +128,95 @@ def _extract_zip(uploaded_file) -> Path | None:
         return None
 
     return extract_dir
+
+def _build_node(current_path, base_path) -> dict:
+    node = {
+        "name": current_path.name,
+        "type": "folder" if current_path.is_dir() else "file",
+    }
+
+    #Comprobamos si es un fichero
+    if current_path.is_file():
+        node["path"] = str(current_path.relative_to(base_path))
+        node["selectable"] = _has_relevant_extension(current_path.name)
+        return node
+
+    # En caso contrario es una carpeta y miramos los hijos
+    children = []
+    for child in sorted(current_path.iterdir()):
+        # Ignoramos ficheros ocultos
+        if child.name.startswith("."):
+            continue
+        # Ignoramos carpetas excluidas
+        if child.is_dir() and child.name in IGNORED_FOLDERS:
+            continue
+
+        # Llamada recursiva, en caso de que el hijo sea un fichero devolvera el valor 
+        # en caso contrario que sea un directorio "aceptado" volvera a hacer la llamada recursiva hasta encontrar un fichero
+        child_node = _build_node(child, base_path)
+        if child_node:
+            children.append(child_node)
+    
+    # Ordena primero carpetas y luego archivos
+    children.sort(key=lambda n: (n["type"] != "folder", n["name"].lower()))
+    
+    node["children"] = children
+    return node
+
+def _build_project_tree(root_path: Path) -> dict | None:
+    if not root_path.exists() or not root_path.is_dir():
+        return None
+    
+    return _build_node(root_path, root_path)
+
+# Se mete en Cache unicamente lo recalculamos cuando cambie el path
+@streamlit.cache_data(show_spinner=False)
+def _get_cached_tree(project_path: str) -> dict | None:
+    return _build_project_tree(Path(project_path))
+
+
+def get_project_tree() -> dict | None:
+    project = state_service.get_current_project()
+    if not project:
+        return None
+    path, _ = project
+    return _get_cached_tree(path)
+
+def _read_file_from_project(project_path: str, relative_path: str) -> str:
+    full_path = Path(project_path)/relative_path
+    return full_path.read_text(encoding = "utf-8", errors = "ignore")
+
+def document_selected_file(relative_path: str) -> None:
+    project = state_service.get_current_project()
+    if not project:
+        streamlit.error("No existe un proyecto cargado.")
+        return
+
+    project_path, _ = project
+
+    # Leer el archivo
+    try:
+        code = _read_file_from_project(project_path, relative_path)
+    except FileNotFoundError:
+        streamlit.error(f"No se ha encontrado el archivo: {relative_path}")
+        return
+
+    # Validar tamaño
+    if len(code) > MAX_FILE_SIZE:
+        streamlit.error(
+            f"El archivo es demasiado grande "
+            f"({len(code):,} caracteres). Máximo: {MAX_FILE_SIZE:,}."
+        )
+        return
+
+    # Guardar el archivo seleccionado (para el chat contextual de Fase 3.1)
+    state_service.set_selected_file(relative_path, code)
+
+    # Invocar el grafo del documentador
+    result = _get_graph().invoke({
+        "code": code,
+        "filename": relative_path,
+        "documentation": "",
+    })
+
+    state_service.set_last_documentation(result["documentation"])
