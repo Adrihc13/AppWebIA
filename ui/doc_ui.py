@@ -8,9 +8,9 @@ def _render_header() -> None:
 def _render_uploader() -> None:
     file = streamlit.file_uploader(
         "Selecciona un archivo .py a analizar",
-        type = ["py"],
+        type = ["py", "zip"],
         accept_multiple_files = False,
-        max_upload_size = 1
+        max_upload_size = 10
     )
 
     if file is not None:
@@ -30,10 +30,10 @@ def _render_result() -> None:
     streamlit.markdown(doc)
 
     streamlit.download_button(
-            label="⬇️ Descargar como Markdown",
-            data=doc,
-            file_name="documentation.md",
-            mime="text/markdown",
+        label="⬇️ Descargar como Markdown",
+        data=doc,
+        file_name="documentation.md",
+        mime="text/markdown",
     )
 
 

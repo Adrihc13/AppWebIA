@@ -10,6 +10,7 @@ def init() -> None:
     _init_messages()
     _init_screens()
     _init_documentation()
+    _init_project()
 
 def _init_screens():
     if "screen_type" not in streamlit.session_state:
@@ -22,6 +23,12 @@ def _init_messages() -> None:
 def _init_documentation() -> None:
     if "last_documentation"not in streamlit.session_state:
         streamlit.session_state.last_documentation = ""
+
+def _init_project() -> None:
+    if "current_project_path"not in streamlit.session_state:
+        streamlit.session_state.current_project_path = None
+    if "current_project_name"not in streamlit.session_state:
+        streamlit.session_state.current_project_name = None
 
 # --- Message ---
 def add_message(msg: BaseMessage) -> None:
@@ -81,3 +88,20 @@ def set_last_documentation(new_doc: str) -> None:
 
 def clear_last_documentation() -> str:
     streamlit.session_state.last_documentation = ""
+
+# --- Project ---
+def get_current_project() -> tuple[str, str] | None:
+    path = streamlit.session_state.current_project_path
+    name = streamlit.session_state.current_project_name
+
+    if path and name:
+        return path, name
+    return None
+
+def set_current_project(path: str, name: str) -> None:
+    streamlit.session_state.current_project_path = path
+    streamlit.session_state.current_project_name = name
+
+def clear_current_project() -> None:
+    streamlit.session_state.current_project_path = None
+    streamlit.session_state.current_project_name = None
