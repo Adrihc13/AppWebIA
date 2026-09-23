@@ -13,8 +13,23 @@ SYSTEM_PROMPT = (
     "Al responder, incluye 'Grog piensa' o 'Grog cree' y despues añades tu respuesta, a no ser que te pregunte por tu nombre, en cuyo caso solo dices tu nombre."
 )
 
+CONTEXT_PROMPT = (
+    "A continuación tienes el contenido de un fichero de código "
+    "sobre el que el usuario está preguntando. Úsalo como contexto "
+    "para responder sus dudas:"
+)
+
 load_dotenv()
 
 def create_llm(temperature_value = 0.7):
     return ChatGroq(model = MODEL_NAME, temperature = temperature_value)
 
+def build_system_prompt(context: str = ""):
+    if not context:
+        return SYSTEM_PROMPT
+
+    return (
+        f"{SYSTEM_PROMPT}\n\n"
+        f"{CONTEXT_PROMPT}\n\n"
+        f"```\n{context}\n```"
+    )

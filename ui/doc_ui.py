@@ -32,7 +32,7 @@ def _render_result() -> None:
     streamlit.download_button(
             label="⬇️ Descargar como Markdown",
             data=doc,
-            file_name="documentacion.md",
+            file_name="documentation.md",
             mime="text/markdown",
     )
 
