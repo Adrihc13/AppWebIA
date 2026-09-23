@@ -79,6 +79,30 @@ def _render_conversation_list():
                 chat_service.delete_conversation(tid)
                 streamlit.rerun()
 
+#Para cuando se inicie un chat con contexto de un fichero de un proyecto
+def _render_chat_context_banner() -> None:
+    chat_file = state_service.get_chat_file()
+    if not chat_file:
+        return
+
+    path, _ = chat_file
+
+    col1, col2 = streamlit.columns([7, 3])
+
+    with col1:
+        streamlit.info(f"💬 Hablando sobre: `{path}`")
+
+    with col2:
+        if streamlit.button(
+            "← Volver al proyecto",
+            key="back_to_project",
+            use_container_width=True,
+        ):
+            state_service.clear_chat_file()
+            state_service.clear_selected_file()
+            state_service.set_screen_type(2)   # 2 = documentador/tree
+            streamlit.rerun()
+
 def render_user_message(text: str):
     with streamlit.chat_message("user"):
         streamlit.markdown(text)
@@ -102,5 +126,6 @@ def get_user_input():
 
 def render_chatbot():
     _render_chatbot_header()
+    _render_chat_context_banner()
     _render_chatbot_history()
     _render_chatbot_sidebar()

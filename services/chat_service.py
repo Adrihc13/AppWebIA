@@ -1,4 +1,4 @@
-
+from pathlib import Path
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 import streamlit
 import sqlite3
@@ -6,7 +6,7 @@ from langgraph.checkpoint.sqlite import SqliteSaver
 
 from agent.graph import build_graph
 from ui import app_ui, chat_ui
-from services import state_service
+from services import state_service, doc_service
 from repositories import conversation_repo as conv_repo
 
 # Recompila el grafo una unica vez por ejecución de la app, y lo guarda en caché para no volver a compilarlo en cada interacción.
@@ -16,6 +16,63 @@ def get_graph():
     memory = SqliteSaver(conn)
 
     return build_graph(checkpointer_sqlite_saver = memory)
+
+def _build_conversation_title(user_input: str, chat_from_file: str) -> str:
+    if chat_from_file:
+        return f"📄 {Path(chat_from_file[0]).name}"
+    return user_input
+
+
+def _create_conversation(thread_id: str, user_input: str) -> None:
+    chat_from_file = state_service.get_chat_file()
+    file_path = chat_from_file[0] if chat_from_file else None
+    title = _build_conversation_title(user_input, chat_from_file)
+    conv_repo.create_conversations(thread_id, title, file_path=file_path)
+
+
+def _update_conversation_title(thread_id: str, user_input: str) -> None:
+    chat_from_file = state_service.get_chat_file()
+    file_path = chat_from_file[0] if chat_from_file else None
+    title = _build_conversation_title(user_input, chat_from_file)
+    conv_repo.update_conversation_title_and_file(thread_id, title, file_path)
+
+def _send_messages_to_agent():
+    graph = get_graph()
+
+    chat_from_file = state_service.get_chat_file()
+    context = chat_from_file[1] if chat_from_file else ""
+
+    return graph.stream(
+        {
+            "messages": state_service.get_last_user_message(),
+            "context": context
+        },
+            config={"configurable": {"thread_id": state_service.get_thread_id()}},
+            stream_mode="values")
+
+# Intenta recuperar el fichero de un chat en caso de que exista para actualizar el contexto del Agente
+def _restore_chat_context(thread_id: str) -> None:
+    conv = conv_repo.get_conversation(thread_id)
+
+    if not conv or not conv.get("file_path"):
+        state_service.clear_chat_file()
+        return
+
+    file_path = conv["file_path"]
+
+    # Si no hay proyecto cargado en la sesion, no podemos leer el archivo, se solucionara cuando se aniada persistencia de datos en BBDD de los proyectos
+    project = state_service.get_current_project()
+    if not project:
+        state_service.clear_chat_file()
+        return
+
+    # Intentar leer el archivo desde el proyecto
+    project_path, _ = project
+    try:
+        content = doc_service.read_file_from_project(project_path, file_path)
+        state_service.set_chat_file(file_path, content)
+    except FileNotFoundError:
+        state_service.clear_chat_file()
 
 def init():
     handle_input()
@@ -32,12 +89,10 @@ def handle_input() -> None:
 
     # Comprobamos que exista la conversacion en caso contrario la creamos
     if not conv_repo.exists_conversation(thread_id):
-        conv_repo.create_conversations(thread_id, user_input)
-        new_conversation = True
-
-    #Actualizamos el titulo de la conversacion en BBDD cuando se mande el primer mensaje del user, en el caso de que si existiera la conversacion
-    elif conv_repo.get_message_count(thread_id) == 0:
-        conv_repo.update_conversation_title(thread_id, user_input)
+        _create_conversation(thread_id, user_input)
+    #Actualizamos el titulo de la conversacion en BBDD cuando se mande el primer mensaje del user, en el caso de que si existiera la conversacion, solo para chat normal
+    elif conv_repo.is_new_conversation(thread_id):
+        _update_conversation_title(thread_id, user_input)
 
     #almacenamos el mensaje del usuario
     state_service.add_message(HumanMessage(content = user_input))
@@ -53,12 +108,7 @@ def handle_input() -> None:
         streamlit.rerun()
 
 
-def _send_messages_to_agent():
-    graph = get_graph()
-    return graph.stream(
-        {"messages": state_service.get_last_user_message()},
-            config={"configurable": {"thread_id": state_service.get_thread_id()}},
-            stream_mode="values")
+
 
 def list_conversations() -> list[dict]:
     return conv_repo.list_all_conversations()
@@ -84,6 +134,8 @@ def switch_conversation(thread_id: str) -> None:
 
     for msg in load_messages(thread_id):
         state_service.add_message(msg)
+
+    _restore_chat_context(thread_id)
 
 def delete_conversation(thread_id: str):
     conv_repo.delete_conversation(thread_id)

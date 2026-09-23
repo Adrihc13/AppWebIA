@@ -4,19 +4,28 @@ from langchain_core.messages import SystemMessage
 from langgraph.checkpoint.sqlite import SqliteSaver
 
 from .agent_state import AgentState
-from .llm import MODEL_NAME, SYSTEM_PROMPT
+from .llm import MODEL_NAME, SYSTEM_PROMPT, create_llm, build_system_prompt
 
 
 # Llamada al LLM
 def call_model(state: AgentState) -> dict:
-    llm = ChatGroq(model=MODEL_NAME, temperature=0.7)
+    llm = create_llm()
 
-    # Nos aseguramos de que el primer mensaje sea el system prompt
     messages = state["messages"]
-    if not messages or not isinstance(messages[0], SystemMessage):
-        messages = [SystemMessage(content=SYSTEM_PROMPT), *messages]
+    context = state.get("context", "") or "" #para que no devuelva None en caso de que exista la clave pero sin valor
 
-    response = llm.invoke(messages)
+    #Ampliamos el contexto del system prompt para el caso de que haya un fichero de codigo a preguntar
+    system_content = build_system_prompt(context = context)
+
+    # Filtramos el historial de mensajes y eliminamos mensajes del systema/prompts para insertarle despues el nuevo prompt con el contexto actualizado
+    conversation = []
+    for m in messages:
+        if not isinstance(m,SystemMessage):
+            conversation.append(m)
+
+    full_messages = [SystemMessage(content=system_content), *conversation]
+
+    response = llm.invoke(full_messages)
     return {"messages": [response]}
 
 

@@ -11,6 +11,7 @@ def init() -> None:
     _init_screens()
     _init_documentation()
     _init_project()
+    _init_chat_from_file()
 
 def _init_screens():
     if "screen_type" not in streamlit.session_state:
@@ -33,6 +34,12 @@ def _init_project() -> None:
         streamlit.session_state.selected_file_path = None
     if "selected_file_content" not in streamlit.session_state:
         streamlit.session_state.selected_file_content = None
+
+def _init_chat_from_file() -> None:
+    if "chat_file_path"not in streamlit.session_state:
+        streamlit.session_state.chat_file_path = None
+    if "chat_file_content"not in streamlit.session_state:
+        streamlit.session_state.chat_file_content = None
 
 # --- Message ---
 def add_message(msg: BaseMessage) -> None:
@@ -124,3 +131,21 @@ def get_selected_file() -> tuple[str, str] | None:
 def clear_selected_file() -> None:
     streamlit.session_state.selected_file_path = None
     streamlit.session_state.selected_file_content = None
+
+# --- Chat from a Project File ---
+def set_chat_file(path: str, content: str) -> None:
+    streamlit.session_state.chat_file_path = path
+    streamlit.session_state.chat_file_content = content
+
+
+def get_chat_file() -> tuple[str, str] | None:
+    path = streamlit.session_state.get("chat_file_path")
+    content = streamlit.session_state.get("chat_file_content")
+    if path and content:
+        return path, content
+    return None
+
+
+def clear_chat_file() -> None:
+    streamlit.session_state.chat_file_path = None
+    streamlit.session_state.chat_file_content = None

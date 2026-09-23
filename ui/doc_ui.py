@@ -84,15 +84,20 @@ def _render_file_documentation() -> None:
     if not selected:
         return
 
-    path, _ = selected
+    path, content = selected
     doc = state_service.get_last_documentation()
 
     # Botón de volver
-    col1, _ = streamlit.columns([2, 8])
+    col1, col2, _ = streamlit.columns([4, 4, 10])
     with col1:
         if streamlit.button("← Volver al árbol", use_container_width=True):
             state_service.clear_selected_file()
             state_service.clear_last_documentation()
+            streamlit.rerun()
+    with col2:
+        if streamlit.button("💬 Preguntar al Agente", use_container_width=True, type="primary"):
+            state_service.set_chat_file(path, content)
+            state_service.set_screen_type(1)   # 1 = chatbot
             streamlit.rerun()
 
     streamlit.subheader(f"📄 {path}")

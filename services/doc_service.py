@@ -182,7 +182,7 @@ def get_project_tree() -> dict | None:
     path, _ = project
     return _get_cached_tree(path)
 
-def _read_file_from_project(project_path: str, relative_path: str) -> str:
+def read_file_from_project(project_path: str, relative_path: str) -> str:
     full_path = Path(project_path)/relative_path
     return full_path.read_text(encoding = "utf-8", errors = "ignore")
 
@@ -196,7 +196,7 @@ def document_selected_file(relative_path: str) -> None:
 
     # Leer el archivo
     try:
-        code = _read_file_from_project(project_path, relative_path)
+        code = read_file_from_project(project_path, relative_path)
     except FileNotFoundError:
         streamlit.error(f"No se ha encontrado el archivo: {relative_path}")
         return
