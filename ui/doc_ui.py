@@ -4,7 +4,9 @@ from services import doc_service, state_service
 
 def _render_header() -> None:
     streamlit.title("📄 Documentador de código")
-    streamlit.caption("Sube un archivo Python y obtén documentación técnica generada por un Agente de IA")
+    streamlit.markdown("Sube un archivo .py o un .zip de tu proyecto de Python y obtén documentación técnica generada por un Agente de IA")
+    streamlit.caption("(Evita incluir el .venv del .zip)  \n Para cualquier duda o consulta, una vez generada la documentación puedes preguntar al agente sobre ese fichero, " \
+    "mediante un boton que aparecera en la parte superior de la documentación")
 
 def _render_uploader() -> None:
     file = streamlit.file_uploader(
@@ -79,6 +81,7 @@ def _render_tree(tree: dict | None) -> None:
     streamlit.subheader("🌳 Estructura 🌳")
     _render_tree_node(tree)
 
+#Caso de que se suba un proyecto
 def _render_file_documentation() -> None:
     selected = state_service.get_selected_file()
     if not selected:
@@ -88,7 +91,7 @@ def _render_file_documentation() -> None:
     doc = state_service.get_last_documentation()
 
     # Botón de volver
-    col1, col2, _ = streamlit.columns([4, 4, 10])
+    col1, col2, _ = streamlit.columns([4, 8, 10])
     with col1:
         if streamlit.button("← Volver al árbol", use_container_width=True):
             state_service.clear_selected_file()
@@ -96,8 +99,8 @@ def _render_file_documentation() -> None:
             streamlit.rerun()
     with col2:
         if streamlit.button("💬 Preguntar al Agente", use_container_width=True, type="primary"):
-            state_service.set_chat_file(path, content)
-            state_service.set_screen_type(1)   # 1 = chatbot
+            from services import chat_service
+            chat_service.start_chat_with_file(path, content)
             streamlit.rerun()
 
     streamlit.subheader(f"📄 {path}")
@@ -117,6 +120,39 @@ def _render_file_documentation() -> None:
         mime="text/markdown",
     )
 
+#Caso de que se suba un unico fichero
+def _render_uploaded_file_documentation() -> None:
+    from services import chat_service
+    uploaded = state_service.get_uploaded_file()
+    if not uploaded:
+        return
+
+    name, content = uploaded
+    doc = state_service.get_last_documentation()
+
+    col1, _ = streamlit.columns([8, 18])
+    with col1:
+        if streamlit.button("💬 Preguntar al Agente de IA", use_container_width=True, type="primary"):
+            chat_service.start_chat_with_file(name, content)
+            streamlit.rerun()
+
+    streamlit.subheader(f"📄 {name}")
+
+    if not doc:
+        streamlit.info("Generando documentación...")
+        return
+
+    streamlit.markdown(doc)
+
+    # Nombre del archivo para descarga
+    stem = Path(name).stem
+    streamlit.download_button(
+        label="⬇️ Descargar como Markdown",
+        data=doc,
+        file_name=f"{stem}_doc.md",
+        mime="text/markdown",
+    )
+
 def _render_result() -> None:
     if state_service.get_selected_file():
         _render_file_documentation()
@@ -128,20 +164,9 @@ def _render_result() -> None:
         _render_tree(tree)
         return
 
-    doc = state_service.get_last_documentation()
-    if not doc:
+    if state_service.get_uploaded_file():
+        _render_uploaded_file_documentation()
         return
-
-    streamlit.divider()
-    streamlit.subheader("Resultado")
-    streamlit.markdown(doc)
-
-    streamlit.download_button(
-        label="⬇️ Descargar como Markdown",
-        data=doc,
-        file_name="documentation.md",
-        mime="text/markdown",
-    )
 
 def render_documentation() -> None:
     _render_header()

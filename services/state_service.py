@@ -36,6 +36,13 @@ def _init_project() -> None:
         streamlit.session_state.selected_file_content = None
 
 def _init_chat_from_file() -> None:
+    #Unique Files
+    if "uploaded_file_name"not in streamlit.session_state:
+        streamlit.session_state.uploaded_file_name = None
+    if "uploaded_file_content"not in streamlit.session_state:
+        streamlit.session_state.uploaded_file_content = None
+
+    #Project Files
     if "chat_file_path"not in streamlit.session_state:
         streamlit.session_state.chat_file_path = None
     if "chat_file_content"not in streamlit.session_state:
@@ -149,3 +156,21 @@ def get_chat_file() -> tuple[str, str] | None:
 def clear_chat_file() -> None:
     streamlit.session_state.chat_file_path = None
     streamlit.session_state.chat_file_content = None
+
+# --- Chat from a uinque File ---
+def set_uploaded_file(name: str, content: str) -> None:
+    streamlit.session_state.uploaded_file_name = name
+    streamlit.session_state.uploaded_file_content = content
+
+
+def get_uploaded_file() -> tuple[str, str] | None:
+    name = streamlit.session_state.get("uploaded_file_name")
+    content = streamlit.session_state.get("uploaded_file_content")
+    if name and content:
+        return name, content
+    return None
+
+
+def clear_uploaded_file() -> None:
+    streamlit.session_state.uploaded_file_name = None
+    streamlit.session_state.uploaded_file_content = None

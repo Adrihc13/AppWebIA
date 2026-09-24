@@ -60,7 +60,7 @@ def _restore_chat_context(thread_id: str) -> None:
 
     file_path = conv["file_path"]
 
-    # Si no hay proyecto cargado en la sesion, no podemos leer el archivo, se solucionara cuando se aniada persistencia de datos en BBDD de los proyectos
+    # Si no hay proyecto cargado en la sesion, no podemos leer el archivo, se solucionara cuando se implemente persistencia de datos en BBDD de los proyectos
     project = state_service.get_current_project()
     if not project:
         state_service.clear_chat_file()
@@ -106,6 +106,17 @@ def handle_input() -> None:
     conv_repo.increment_message_count(thread_id)
     if new_conversation:
         streamlit.rerun()
+
+def start_chat_with_file(file_path: str, content: str) -> None:
+    state_service.new_thread_id()
+    thread_id = state_service.get_thread_id()
+    state_service.clear()
+
+    state_service.set_chat_file(file_path, content)
+    title = f"📄 {Path(file_path).name}"
+    conv_repo.create_conversations(thread_id, title, file_path=file_path)
+
+    state_service.set_screen_type(1)
 
 
 

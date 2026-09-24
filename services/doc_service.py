@@ -45,9 +45,17 @@ def handle_upload(file) -> None:
     else:
         code = _read_file(file)
 
+        # Validamos que el fichero no este vacio o su size no exceda la capacidad max 
         if len(code) > MAX_FILE_SIZE:
             streamlit.error(f"El archivo es más grande de lo permitido: {MAX_FILE_SIZE}.")
             return
+
+        #Check de que el fichero a doc no esta vacio
+        if not code.strip():
+            streamlit.toast("El archivo está vacío.", icon="⚠️")
+            return
+
+        state_service.set_uploaded_file(file_name, code)
 
         result = _get_graph().invoke({
             "code": code,
@@ -207,6 +215,11 @@ def document_selected_file(relative_path: str) -> None:
             f"El archivo es demasiado grande "
             f"({len(code):,} caracteres). Máximo: {MAX_FILE_SIZE:,}."
         )
+        return
+
+    #Check de que el fichero a doc no esta vacio
+    if not code.strip():
+        streamlit.toast("El archivo está vacío.", icon="⚠️")
         return
 
     # Guardar el archivo seleccionado (para el chat contextual de Fase 3.1)

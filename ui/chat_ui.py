@@ -18,7 +18,7 @@ streamlit.markdown(
 )
 
 def _render_chatbot_header():
-    streamlit.title("Buenas soy la Rana inteligente Grog 🐸, pregunta lo que quieras!")
+    streamlit.title("Buenas soy un Chatbot, pregunta lo que quieras!")
     streamlit.caption("Chatbot con memoria de conversación · LangGraph + Groq")
     
 
