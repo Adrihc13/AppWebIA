@@ -1,9 +1,9 @@
+import os
 from langchain_groq import ChatGroq
 from dotenv import load_dotenv
 
 # Config del modelo
-#MODEL_NAME = "groq/compound-mini"
-MODEL_NAME = "openai/gpt-oss-20b"
+MODEL_NAME = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")
 
 SYSTEM_PROMPT = (
     "Eres un asistente útil, claro y conciso. "
