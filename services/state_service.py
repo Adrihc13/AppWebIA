@@ -2,7 +2,9 @@ import uuid
 
 import streamlit
 from langchain_core.messages import BaseMessage, HumanMessage
-from repositories import db, conversation_repo
+
+from repositories import conversation_repo, db
+
 
 # --- Inits ---
 def init() -> None:

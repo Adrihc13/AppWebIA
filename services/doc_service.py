@@ -1,15 +1,12 @@
-import streamlit
-from pathlib import Path
 import uuid
 import zipfile
+from pathlib import Path
+
+import streamlit
+
 from agent import doc_graph
 from services import state_service
-
-MAX_FILE_SIZE = 100_000  #Bytes
-MAX_ZIP_SIZE = 10 * 1024 * 1024 #10 MB
-MAX_FILES_IN_ZIP = 100
-
-RELEVANT_EXTENSIONS = {".py", ".sql"}
+from utils import constants as const
 
 IGNORED_FOLDERS = {
     "__pycache__",
@@ -46,8 +43,8 @@ def handle_upload(file) -> None:
         code = _read_file(file)
 
         # Validamos que el fichero no este vacio o su size no exceda la capacidad max 
-        if len(code) > MAX_FILE_SIZE:
-            streamlit.error(f"El archivo es más grande de lo permitido: {MAX_FILE_SIZE}.")
+        if len(code) > const.MAX_FILE_SIZE:
+            streamlit.error(f"El archivo es más grande de lo permitido: {const.MAX_FILE_SIZE}.")
             return
 
         #Check de que el fichero a doc no esta vacio
@@ -81,7 +78,7 @@ def _is_in_ignored_folder(path: str) -> bool:
     return any(part in IGNORED_FOLDERS for part in parts)
 
 def _has_relevant_extension(path: str) -> bool:
-    return any(path.endswith(ext) for ext in RELEVANT_EXTENSIONS)
+    return any(path.endswith(ext) for ext in const.RELEVANT_EXTENSIONS)
 
 def _extract_zip(uploaded_file) -> Path | None:
     #Comprobamos el size del zip
@@ -89,8 +86,8 @@ def _extract_zip(uploaded_file) -> Path | None:
     size = uploaded_file.tell()
     uploaded_file.seek(0)
 
-    if size > MAX_ZIP_SIZE:
-        streamlit.error(f"El Zip es demasiado grande. Máximo permitido: {MAX_ZIP_SIZE} MB")
+    if size > const.MAX_ZIP_SIZE:
+        streamlit.error(f"El Zip es demasiado grande. Máximo permitido: {const.MAX_ZIP_SIZE} MB")
         return None
 
     #Creamos un nuevo directorio para el proyecto
@@ -117,14 +114,14 @@ def _extract_zip(uploaded_file) -> Path | None:
                     continue
 
                 # Validar tamaño por archivo
-                if member.file_size > MAX_FILE_SIZE:
+                if member.file_size > const.MAX_FILE_SIZE:
                     continue
 
                 # Contar solo archivos relevantes
                 if _has_relevant_extension(member.filename):
                     file_count += 1
-                    if file_count > MAX_FILES_IN_ZIP:
-                        streamlit.warning(f"El ZIP contiene más de {MAX_FILES_IN_ZIP} archivos relevantes. "
+                    if file_count > const.MAX_FILES_IN_ZIP:
+                        streamlit.warning(f"El ZIP contiene más de {const.MAX_FILES_IN_ZIP} archivos relevantes. "
                                    "Se ignorarán los restantes.")
                         break
 
@@ -210,10 +207,10 @@ def document_selected_file(relative_path: str) -> None:
         return
 
     # Validar tamaño
-    if len(code) > MAX_FILE_SIZE:
+    if len(code) > const.MAX_FILE_SIZE:
         streamlit.error(
             f"El archivo es demasiado grande "
-            f"({len(code):,} caracteres). Máximo: {MAX_FILE_SIZE:,}."
+            f"({len(code):,} caracteres). Máximo: {const.MAX_FILE_SIZE:,}."
         )
         return
 

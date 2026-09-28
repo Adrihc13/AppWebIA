@@ -1,0 +1,4 @@
+RELEVANT_EXTENSIONS: set[str] = {".py", ".sql"}
+MAX_FILE_SIZE = 100_000  #Bytes
+MAX_ZIP_SIZE = 10 * 1024 * 1024 #10 MB
+MAX_FILES_IN_ZIP = 100

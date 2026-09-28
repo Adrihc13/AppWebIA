@@ -1,6 +1,7 @@
 import os
-from langchain_groq import ChatGroq
+
 from dotenv import load_dotenv
+from langchain_groq import ChatGroq
 
 # Config del modelo
 MODEL_NAME = os.getenv("GROQ_MODEL", "openai/gpt-oss-20b")

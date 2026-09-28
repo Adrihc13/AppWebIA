@@ -1,6 +1,9 @@
-import streamlit
 from pathlib import Path
+
+import streamlit
+
 from services import doc_service, state_service
+
 
 def _render_header() -> None:
     streamlit.title("📄 Documentador de código")
@@ -8,16 +11,17 @@ def _render_header() -> None:
     streamlit.caption("(Evita incluir el .venv del .zip)  \n Para cualquier duda o consulta, una vez generada la documentación puedes preguntar al agente sobre ese fichero, " \
     "mediante un boton que aparecera en la parte superior de la documentación")
 
+#TODO refactor con varias extensiones
 def _render_uploader() -> None:
     file = streamlit.file_uploader(
         "Selecciona un archivo .py a analizar",
-        type = ["py", "zip"],
+        type = ["py", "zip"],   
         accept_multiple_files = False,
         max_upload_size = 10
     )
 
     if file is not None:
-        col1, col2 = streamlit.columns([1,4])
+        col1, _ = streamlit.columns([1,4])
         with col1:
             if streamlit.button("📝 Documentar", type = "primary", use_container_width = True):
                 doc_service.handle_upload(file)
@@ -27,7 +31,7 @@ def _render_uploader() -> None:
 
 def _render_tree_node(node: dict, depth: int = 0) -> None:
     if depth > 0:
-        col_left, col_right = streamlit.columns([depth, 20])
+        _, col_right = streamlit.columns([depth, 20])
         with col_right:
             _render_node_content(node, depth)
     else:
