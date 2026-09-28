@@ -9,6 +9,9 @@ def get_connection():
 
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     conn.row_factory = sqlite3.Row #permite acceder por el nombre de columna
+
+    #Activamos en cada conexion las referencias a fk
+    conn.execute("PRAGMA foreign_keys = ON")
     return conn
 
 def init_db():

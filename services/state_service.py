@@ -28,8 +28,8 @@ def _init_documentation() -> None:
         streamlit.session_state.last_documentation = ""
 
 def _init_project() -> None:
-    if "current_project_path"not in streamlit.session_state:
-        streamlit.session_state.current_project_path = None
+    if "current_project_id"not in streamlit.session_state:
+        streamlit.session_state.current_project_id = None
     if "current_project_name"not in streamlit.session_state:
         streamlit.session_state.current_project_name = None
     if "selected_file_path" not in streamlit.session_state:
@@ -47,8 +47,8 @@ def _init_chat_from_file() -> None:
     #Project Files
     if "chat_file_path"not in streamlit.session_state:
         streamlit.session_state.chat_file_path = None
-    if "chat_file_content"not in streamlit.session_state:
-        streamlit.session_state.chat_file_content = None
+    if "chat_file_project_id"not in streamlit.session_state:
+        streamlit.session_state.chat_file_project_id = None
 
 # --- Message ---
 def add_message(msg: BaseMessage) -> None:
@@ -111,7 +111,7 @@ def clear_last_documentation() -> str:
 
 # --- Project ---
 def get_current_project() -> tuple[str, str] | None:
-    path = streamlit.session_state.current_project_path
+    path = streamlit.session_state.current_project_id
     name = streamlit.session_state.current_project_name
 
     if path and name:
@@ -119,11 +119,11 @@ def get_current_project() -> tuple[str, str] | None:
     return None
 
 def set_current_project(path: str, name: str) -> None:
-    streamlit.session_state.current_project_path = path
+    streamlit.session_state.current_project_id = path
     streamlit.session_state.current_project_name = name
 
 def clear_current_project() -> None:
-    streamlit.session_state.current_project_path = None
+    streamlit.session_state.current_project_id = None
     streamlit.session_state.current_project_name = None
 
 def set_selected_file(path: str, content: str) -> None:
@@ -142,22 +142,22 @@ def clear_selected_file() -> None:
     streamlit.session_state.selected_file_content = None
 
 # --- Chat from a Project File ---
-def set_chat_file(path: str, content: str) -> None:
+def set_chat_file(project_id: str , path: str) -> None:
     streamlit.session_state.chat_file_path = path
-    streamlit.session_state.chat_file_content = content
+    streamlit.session_state.chat_file_project_id  = project_id
 
 
 def get_chat_file() -> tuple[str, str] | None:
     path = streamlit.session_state.get("chat_file_path")
-    content = streamlit.session_state.get("chat_file_content")
-    if path and content:
-        return path, content
+    id = streamlit.session_state.get("chat_file_project_id")
+    if path and id:
+        return path, id
     return None
 
 
 def clear_chat_file() -> None:
     streamlit.session_state.chat_file_path = None
-    streamlit.session_state.chat_file_content = None
+    streamlit.session_state.chat_file_project_id = None
 
 # --- Chat from a uinque File ---
 def set_uploaded_file(name: str, content: str) -> None:

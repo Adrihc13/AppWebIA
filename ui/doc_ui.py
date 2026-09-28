@@ -104,7 +104,11 @@ def _render_file_documentation() -> None:
     with col2:
         if streamlit.button("💬 Preguntar al Agente", use_container_width=True, type="primary"):
             from services import chat_service
-            chat_service.start_chat_with_file(path, content)
+
+            project = state_service.get_current_project()
+            project_id, _ = project
+
+            chat_service.start_chat_with_file(project_id, path)
             streamlit.rerun()
 
     streamlit.subheader(f"📄 {path}")
@@ -137,7 +141,11 @@ def _render_uploaded_file_documentation() -> None:
     col1, _ = streamlit.columns([8, 18])
     with col1:
         if streamlit.button("💬 Preguntar al Agente de IA", use_container_width=True, type="primary"):
-            chat_service.start_chat_with_file(name, content)
+
+            project = state_service.get_current_project()
+            project_id, _ = project
+
+            chat_service.start_chat_with_file(project_id, name)
             streamlit.rerun()
 
     streamlit.subheader(f"📄 {name}")
